@@ -1,1 +1,16 @@
 .env
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# RAG artifacts (generated)
+rag/vectordb/
+rag/img_index/
+rag/image_index/
+rag/images/*
+
+# OS/editor
+.DS_Store
+.vscode/
