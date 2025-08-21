@@ -13,14 +13,22 @@ python-multipart==0.0.9   # for file uploads in FastAPI
 # Vector DB + Embeddings
 chromadb==0.5.5
 chroma-hnswlib
-sentence-transformers==3.0.1
+sentence-transformers==2.7.0
 faiss-cpu==1.8.0.post1
 
 # Data & media processing
-numpy>=1.26
+numpy==1.26.4
 pillow==10.4.0
 pypdf==5.1.0
 markdown-it-py==3.0.0
+pandas
+scikit-learn
+
+# Deep learning backends
+torch==2.3.1
+torchvision
+torchaudio
+transformers==4.44.2
 
 # Optional: Web UI
 streamlit==1.38.0
