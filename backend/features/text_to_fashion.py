@@ -4,7 +4,8 @@ from dotenv import load_dotenv
 from openai import OpenAI
 
 # Load .env file
-load_dotenv()
+from pathlib import Path
+load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent.parent / ".env")
 
 # Create OpenAI client from environment variable
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))

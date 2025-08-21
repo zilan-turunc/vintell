@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Vintell AI</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 50px; }
+        .section { margin: 30px 0; }
+        textarea, input { padding: 10px; width: 300px; }
+        button { padding: 10px 20px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>🧠 Vintell AI Assistant</h1>
+
+    <div class="section">
+        <h2>Text-to-Fashion Recommender</h2>
+        <form action="/text-to-fashion" method="post">
+            <textarea name="description" placeholder="e.g. black crop top with lace" required></textarea><br>
+            <button type="submit">Suggest Items</button>
+        </form>
+    </div>
+
+    <div class="section">
+        <h2>Moodboard Hashtag Generator</h2>
+        <form action="/moodboard-tags" method="post">
+            <input name="style_description" placeholder="e.g. red blouse" required/><br>
+            <button type="submit">Generate Tags</button>
+        </form>
+    </div>
+</body>
+</html>
