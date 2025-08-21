@@ -4,7 +4,6 @@ from dotenv import load_dotenv
 from pypdf import PdfReader
 from markdown_it import MarkdownIt
 import chromadb
-from chromadb.config import Settings
 from sentence_transformers import SentenceTransformer
 
 # load root .env
