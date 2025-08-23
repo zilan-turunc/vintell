@@ -2,34 +2,38 @@
 from fastapi import FastAPI, Form, Request, UploadFile, File, Query
 from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 from dotenv import load_dotenv
 import os
-import httpx # Make sure to 'pip install httpx'
+import httpx  # pip install httpx
 
-# --- Resolve paths ---
+# --- Create app FIRST ---
+app = FastAPI()
+
+# --- Mount static and include JSON image-search BEFORE defining other routes ---
+from backend.image_search_api import router as image_search_router
+app.mount("/images", StaticFiles(directory="backend/rag/images"), name="images")
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+app.include_router(image_search_router)
+
+# --- Resolve paths / templates ---
 HERE = Path(__file__).resolve()
 FRONTEND_DIR = HERE.parent
 TEMPLATES_DIR = FRONTEND_DIR / "templates"
 PROJECT_ROOT = FRONTEND_DIR.parent
-
-# Load .env from project root (…/.env)
 load_dotenv(dotenv_path=PROJECT_ROOT / ".env")
-
-# --- FastAPI + Jinja ---
-app = FastAPI()
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
-# --- Backend Imports ---
+# --- Backend features ---
 from backend.features.text_to_fashion import suggest_fashion_items
 from backend.agents.moodboard_agent import MoodboardAgent
-# Import the image search function from your RAG service file
-from backend.rag.rag_service import image_search as find_similar_images
+
+# If you STILL had a legacy HTML /image-search route here, REMOVE it
+# (Your new JSON /image-search is already included via router above.)
 
 # --- RAG API Configuration ---
-# The URL for your separate RAG backend server (from rag/server.py)
 RAG_API_URL = "http://127.0.0.1:8000"
-
 
 @app.get("/", response_class=HTMLResponse)
 async def landing(request: Request):
@@ -38,9 +42,6 @@ async def landing(request: Request):
 # --- RAG Streaming Proxy Endpoint ---
 @app.get("/rag-stream-proxy")
 async def rag_stream_proxy(q: str = Query(...)):
-    """
-    This endpoint acts as a proxy to the RAG backend stream.
-    """
     async def stream_generator():
         try:
             async with httpx.AsyncClient(timeout=None) as client:
@@ -53,24 +54,7 @@ async def rag_stream_proxy(q: str = Query(...)):
 
     return StreamingResponse(stream_generator(), media_type="text/event-stream")
 
-# --- Image Search Endpoint ---
-@app.post("/image-search", response_class=HTMLResponse)
-async def image_search(image_file: UploadFile = File(...)):
-    try:
-        image_bytes = await image_file.read()
-        similar_item_titles = find_similar_images(image_bytes=image_bytes)
-        
-        if similar_item_titles:
-            results_html = "<ul>" + "".join(f"<li>{title}</li>" for title in similar_item_titles) + "</ul>"
-            body = f"<h2>Similar Items Found:</h2>{results_html}"
-        else:
-            body = "<h2>No similar items found.</h2>"
-
-    except Exception as e:
-        body = f"<h2>Oops, an error occurred during image search:</h2><pre>{e}</pre>"
-    return body + "<br><a href='/'>Back</a>"
-
-
+# --- Text→Fashion ---
 @app.post("/text-to-fashion", response_class=HTMLResponse)
 async def text_to_fashion(description: str = Form(...)):
     try:
@@ -80,7 +64,7 @@ async def text_to_fashion(description: str = Form(...)):
         body = f"<h2>Oops</h2><pre>{e}</pre>"
     return body + "<a href='/'>Back</a>"
 
-
+# --- Moodboard Tags ---
 @app.post("/moodboard-tags", response_class=HTMLResponse)
 async def moodboard_tags(style_description: str = Form(...)):
     try:
@@ -90,7 +74,6 @@ async def moodboard_tags(style_description: str = Form(...)):
     except Exception as e:
         body = f"<h2>Oops</h2><pre>{e}</pre>"
     return body + "<a href='/'>Back</a>"
-
 
 @app.get("/health", response_class=HTMLResponse)
 async def health():
